@@ -1,0 +1,16 @@
+FROM node:10
+
+WORKDIR /frontend
+
+COPY ./frontend/package.json .
+
+RUN npm install
+
+COPY ./frontend .
+COPY /backend/src/proto/cryptocurrency.proto /backend/src/proto/cryptocurrency.proto
+
+RUN npm run build
+
+EXPOSE 8080
+
+CMD npm start -- --port=8080 --api-root=http://backend:8000

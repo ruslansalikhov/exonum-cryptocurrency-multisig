@@ -1,0 +1,36 @@
+# select build image
+FROM rust:1.33 as backend
+
+RUN apt-get update \
+    && apt-get install -y curl git gcc cpp \
+    libssl-dev pkg-config libsodium-dev libsnappy-dev librocksdb-dev \
+    libprotobuf-dev protobuf-compiler
+
+# create a new empty shell project
+RUN USER=root cargo new --bin exonum-cryptocurrency-multisig 
+WORKDIR /exonum-cryptocurrency-multisig
+
+# copy over your manifests
+COPY ./backend/Cargo.lock ./Cargo.lock
+COPY ./backend/Cargo.toml ./Cargo.toml
+
+# this build step will cache your dependencies
+RUN cargo build --release
+RUN rm src/*.rs
+
+# copy your source tree
+COPY ./backend .
+
+# build for release
+RUN rm -rf ./target/release/deps/exonum_cryptocurrency*
+RUN cargo build --release
+RUN cargo test --release
+
+COPY ./docker/docker-entrypoint-backend.sh ./docker-entrypoint.sh
+
+EXPOSE 8000 9000
+VOLUME /data
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
+
+CMD ./target/release/exonum-cryptocurrency-multisig run --node-config /data/validators/0.toml --db-path /data/db --public-api-address 0.0.0.0:8000 --private-api-address 0.0.0.0:9000
