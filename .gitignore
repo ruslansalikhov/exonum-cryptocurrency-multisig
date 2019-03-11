@@ -1,0 +1,5 @@
+.idea
+data
+/backend/target
+/frontend/dist
+/fronend/node_modules

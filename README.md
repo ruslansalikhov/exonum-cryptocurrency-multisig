@@ -1,42 +1,36 @@
 # Cryptocurrency Multisig
 
 The extended version of the
-[Cryptocurrency Service](https://github.com/exonum/exonum/tree/master/examples/cryptocurrency)
-implementing data proofs. This project demonstrates how to bootstrap your own
-cryptocurrency with [Exonum blockchain](https://github.com/exonum/exonum).
+[Cryptocurrency Service](https://github.com/exonum/exonum/tree/master/examples/cryptocurrency-advanced)
+implementing multisignature.
 
-See [the documentation](https://exonum.com/doc/get-started/data-proofs/)
-for a detailed step-by-step guide how to approach this example.
-
-![Cryptocurrency demo](Screenshot.png)
+[Demo](https://gfycat.com/ru/someyawningdeer)
 
 Exonum blockchain keeps balances of users and handles secure
 transactions between them.
 
 It implements most basic operations:
 
-- Create a new user
-- Add funds to the user's balance
+- Create a new user with several keys
 - Transfer funds between users
 
 ## Install and run
 
 ### Using docker
 
-Simply run the following command to start the cryptocurrency service on 4 nodes
+Simply run the following command to start the cryptocurrency service on
 on the local machine:
 
 ```bash
-docker run -p 8000-8008:8000-8008 exonumhub/exonum-cryptocurrency-advanced:demo
+docker-compose up -d
 ```
 
-Ready! Find demo at [http://127.0.0.1:8008](http://127.0.0.1:8008).
+Ready! Find demo at [http://127.0.0.1:8080](http://127.0.0.1:8080).
 
-Docker will automatically pull image from the repository and
-run 4 nodes with public endpoints at `127.0.0.1:8000`, ..., `127.0.0.1:8003`
-and private ones at `127.0.0.1:8004`, ..., `127.0.0.1:8007`.
+Docker will automatically build backend and frontend images and run 1 testnet node with public endpoint at `127.0.0.1:8000`
+and private ones at `127.0.0.1:9000`.
 
-To stop docker container, use `docker stop <container id>` command.
+To stop docker container, use `docker-compose down` command.
 
 ### Manually
 
@@ -51,60 +45,31 @@ Be sure you installed necessary packages:
 #### Install and run
 
 Below you will find a step-by-step guide to starting the cryptocurrency
-service on 4 nodes on the local machine.
+service on 1 testnet node on the local machine.
 
 Build the project:
 
 ```sh
-cd examples/cryptocurrency-advanced/backend
+cd backend
 
-cargo install
+cargo install --path .
 ```
 
-Generate template:
+Generate testnet config:
 
 <!-- markdownlint-disable MD013 -->
 
 ```sh
 mkdir example
 
-exonum-cryptocurrency-advanced generate-template example/common.toml --validators-count 4
+exonum-cryptocurrency-multisig  generate-testnet 1 --output-dir ./data
 ```
 
-Generate public and secrets keys for each node:
+
+Run node:
 
 ```sh
-exonum-cryptocurrency-advanced generate-config example/common.toml  example/pub_1.toml example/sec_1.toml --peer-address 127.0.0.1:6331
-
-exonum-cryptocurrency-advanced generate-config example/common.toml  example/pub_2.toml example/sec_2.toml --peer-address 127.0.0.1:6332
-
-exonum-cryptocurrency-advanced generate-config example/common.toml  example/pub_3.toml example/sec_3.toml --peer-address 127.0.0.1:6333
-
-exonum-cryptocurrency-advanced generate-config example/common.toml  example/pub_4.toml example/sec_4.toml --peer-address 127.0.0.1:6334
-```
-
-Finalize configs:
-
-```sh
-exonum-cryptocurrency-advanced finalize --public-api-address 0.0.0.0:8200 --private-api-address 0.0.0.0:8091 example/sec_1.toml example/node_1_cfg.toml --public-configs example/pub_1.toml example/pub_2.toml example/pub_3.toml example/pub_4.toml
-
-exonum-cryptocurrency-advanced finalize --public-api-address 0.0.0.0:8201 --private-api-address 0.0.0.0:8092 example/sec_2.toml example/node_2_cfg.toml --public-configs example/pub_1.toml example/pub_2.toml example/pub_3.toml example/pub_4.toml
-
-exonum-cryptocurrency-advanced finalize --public-api-address 0.0.0.0:8202 --private-api-address 0.0.0.0:8093 example/sec_3.toml example/node_3_cfg.toml --public-configs example/pub_1.toml example/pub_2.toml example/pub_3.toml example/pub_4.toml
-
-exonum-cryptocurrency-advanced finalize --public-api-address 0.0.0.0:8203 --private-api-address 0.0.0.0:8094 example/sec_4.toml example/node_4_cfg.toml --public-configs example/pub_1.toml example/pub_2.toml example/pub_3.toml example/pub_4.toml
-```
-
-Run nodes:
-
-```sh
-exonum-cryptocurrency-advanced run --node-config example/node_1_cfg.toml --db-path example/db1 --public-api-address 0.0.0.0:8200
-
-exonum-cryptocurrency-advanced run --node-config example/node_2_cfg.toml --db-path example/db2 --public-api-address 0.0.0.0:8201
-
-exonum-cryptocurrency-advanced run --node-config example/node_3_cfg.toml --db-path example/db3 --public-api-address 0.0.0.0:8202
-
-exonum-cryptocurrency-advanced run --node-config example/node_4_cfg.toml --db-path example/db4 --public-api-address 0.0.0.0:8203
+exonum-cryptocurrency-multisig run --node-config ./data/validators/0.toml --db-path ./data/db --public-api-address 0.0.0.0:8000 --private-api-address 127.0.0.1:9000
 ```
 
 <!-- markdownlint-enable MD013 -->
@@ -112,7 +77,7 @@ exonum-cryptocurrency-advanced run --node-config example/node_4_cfg.toml --db-pa
 Install frontend dependencies:
 
 ```sh
-cd ../frontend
+cd frontend
 
 npm install
 ```
@@ -126,14 +91,14 @@ npm run build
 Run the application:
 
 ```sh
-npm start -- --port=8280 --api-root=http://127.0.0.1:8200
+npm start -- --port=8080 --api-root=http://127.0.0.1:8000
 ```
 
 `--port` is a port for Node.JS app.
 
 `--api-root` is a root URL of public API address of one of nodes.
 
-Ready! Find demo at [http://127.0.0.1:8280](http://127.0.0.1:8280).
+Ready! Find demo at [http://127.0.0.1:8080](http://127.0.0.1:8080).
 
 ## Tutorials
 
