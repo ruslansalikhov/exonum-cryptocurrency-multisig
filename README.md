@@ -5,6 +5,8 @@ The extended version of the
 implementing multisignature.
 
 [Demo](https://gfycat.com/ru/someyawningdeer)
+![Screenshot](Screenshot.png)
+
 
 Exonum blockchain keeps balances of users and handles secure
 transactions between them.
